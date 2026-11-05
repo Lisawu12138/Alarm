@@ -1,0 +1,31 @@
+{
+  "expo": {
+    "name": "Alarm",
+    "slug": "alarm-commitment",
+    "version": "1.0.0",
+    "orientation": "portrait",
+    "userInterfaceStyle": "light",
+    "ios": {
+      "supportsTablet": true
+    },
+    "android": {
+      "package": "com.projectalarm.prototype"
+    },
+    "plugins": [
+      [
+        "expo-camera",
+        {
+          "cameraPermission": "扫描起床任务二维码",
+          "recordAudioAndroid": false
+        }
+      ],
+      [
+        "expo-audio",
+        {
+          "microphonePermission": "录制你的叫醒语音"
+        }
+      ],
+      "expo-asset"
+    ]
+  }
+}
