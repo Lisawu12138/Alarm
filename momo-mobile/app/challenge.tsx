@@ -4,13 +4,13 @@ import { Feather } from '@expo/vector-icons';
 import { router, useFocusEffect } from 'expo-router';
 import { useColors } from '@/hooks/useColors';
 import { useMomo } from '@/context/MomoContext';
-import { Pet, Wave } from '@/components/Art';
+import { PetAnimation, Wave } from '@/components/Art';
 import { Btn, Header, T, VolumeControl, fonts, haptic, styles as ui, useBottomPad, useTopInset } from '@/components/UI';
 import { toneKey } from '@/lib/model';
 
 export default function Challenge() {
   const c = useColors();
-  const { state, dispatch, t } = useMomo();
+  const { state, dispatch, t, pet } = useMomo();
   const top = useTopInset();
   const bottom = useBottomPad(false);
   const [holding, setHolding] = useState(false);
@@ -83,7 +83,7 @@ export default function Challenge() {
       <View style={[ui.flex, { backgroundColor: c.background, paddingTop: top, paddingBottom: bottom }]}>
         <Header back title={t('轻摇演示')} />
         <View style={[ui.flex, ui.body, { alignItems: 'center', justifyContent: 'center' }]}>
-          <Pet pose="sleep" size={180} label={t('青蛙 Momo')} />
+          <PetAnimation state="sleep" size={180} label={t('青蛙 Momo')} />
           <T variant="title" style={{ textAlign: 'center' }}>{t('这次演示已结束')}</T>
           <T variant="small" style={{ textAlign: 'center' }}>{state.saved ? t('重新开始会从0秒累计，今日奖励不重复。') : t('无法开始：请先保存闹钟')}</T>
           <View style={{ alignSelf: 'stretch', gap: 10 }}>
@@ -95,12 +95,12 @@ export default function Challenge() {
   }
 
   const pct = Math.round((progress / duration) * 100);
-  const pose = holding ? 'shake' : progress >= duration * 0.66 ? 'happy' : progress > 0 ? 'awake' : 'sleep';
   const mood = progress >= duration * 0.66 ? t('Momo 也跟着精神起来了') : progress > 0 ? t('Momo 正跟上你的节奏') : t('一起，慢慢动起来');
   const friend = voice !== '' && allowed && elapsed < 8;
   const phase = holding ? t('匀速累计 · 每秒1秒，猛摇不会更快') : graceLeft > 0 ? t('已松开 · 缓冲2秒') : releasedAt.current !== null && progress > 0 ? t('缓慢回退 · 每秒减1秒') : t('按住累计，松开缓冲2秒，再缓慢回退');
 
   const press = (on: boolean) => {
+    dispatch({ type: 'PET_STATE', value: on ? 'shake' : null });
     holdRef.current = on; setHolding(on);
     if (on) { releasedAt.current = null; setGraceLeft(0); haptic('medium'); } else { releasedAt.current = Date.now(); setGraceLeft(2); }
   };
@@ -114,7 +114,7 @@ export default function Challenge() {
           <T variant="small">{mood}</T>
         </View>
         <Animated.View style={{ alignItems: 'center', transform: [{ rotate }] }}>
-          <Pet pose={pose} size={170} label={`${t('青蛙 Momo')} · ${mood}`} />
+          <PetAnimation state={pet.state} size={170} label={`${t('青蛙 Momo')} · ${mood}`} />
         </Animated.View>
         <View style={{ gap: 8 }}>
           <View style={ui.rowBetween}>

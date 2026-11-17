@@ -9,7 +9,7 @@ import { Btn, Card, Screen, T, ToggleRow, Wallet, fonts, haptic, styles as ui } 
 
 export default function Care() {
   const c = useColors();
-  const { state, dispatch, t, name } = useMomo();
+  const { state, dispatch, t, name, pet } = useMomo();
   const [bought, setBought] = useState(false);
   const canBuy = state.points >= 10;
   const title = state.fed ? t('早餐收到，心意也收到') : state.pending ? t('这份心意，等待确认') : t('给我们的 Momo 一份早餐');
@@ -21,7 +21,7 @@ export default function Care() {
         <DemoMenuButton />
       </View>
       <T variant="display">{title}</T>
-      <Room pose={state.fed ? 'fed' : 'awake'} bowlFull={state.fed} speech={speech} label={t('Momo 的晨光小屋')} />
+      <Room petState={pet.state} bowlFull={state.fed} speech={speech} label={t('Momo 的晨光小屋')} />
       <Wallet balance={state.points} stock={state.food} reserved={state.pending} />
 
       {state.fed ? (

@@ -5,10 +5,11 @@ import { router } from 'expo-router';
 import { useColors } from '@/hooks/useColors';
 import { useMomo } from '@/context/MomoContext';
 import { Btn, Confirm, Sheet, T, ToggleRow, fonts, haptic, styles } from '@/components/UI';
+import { petAnimations, petStates } from '@/lib/pet';
 
 export function DemoMenuButton() {
   const c = useColors();
-  const { state, dispatch, t } = useMomo();
+  const { state, dispatch, t, pet } = useMomo();
   const [open, setOpen] = useState(false);
   const [confirm, setConfirm] = useState(false);
   const go = (path: '/care' | '/receiver') => { setOpen(false); router.push(path); };
@@ -24,6 +25,21 @@ export function DemoMenuButton() {
           <T variant="title">{t('探索其他状态')}</T>
           <Pressable onPress={() => setOpen(false)} accessibilityRole="button" accessibilityLabel={t('收起')} hitSlop={10}><Feather name="x" size={22} color={c.foreground} /></Pressable>
         </View>
+        <T variant="label">{t('宠物动画占位')} · {t(petAnimations[pet.state].label)}</T>
+        <T variant="small">{t('暂用静态插画，动画资源待接入。')}</T>
+        <View style={[styles.row, { flexWrap: 'wrap' }]}>
+          {petStates.map(value => (
+            <Pressable key={value} testID={`preview-pet-${value}`} accessibilityRole="button"
+              accessibilityLabel={t(petAnimations[value].label)} accessibilityState={{ selected: state.petOverride === value }}
+              onPress={() => { pet.setState(value); setOpen(false); }}
+              style={{ padding: 10, borderRadius: 12, backgroundColor: state.petOverride === value ? c.primary : c.secondary }}>
+              <Text style={{ fontFamily: fonts.bold, color: state.petOverride === value ? c.primaryForeground : c.primaryDeep }}>
+                {t(petAnimations[value].label)}
+              </Text>
+            </Pressable>
+          ))}
+        </View>
+        <Btn label={t('恢复自动宠物状态')} variant="secondary" onPress={() => { pet.reset(); setOpen(false); }} small testID="pet-auto" />
         <ToggleRow title={t('离线模式')} sub={t('离线喂食 · 预留后等待同步')} value={state.offline} onChange={v => dispatch({ type: 'OFFLINE', value: v })} testID="toggle-offline" />
         <ToggleRow title={t('本地提醒')} sub={t('不会通知或自动响铃')} value={state.reminder} onChange={v => dispatch({ type: 'REMINDER', value: v })} testID="toggle-reminder" />
         <Btn label={t('去早餐页 · 体验待同步')} variant="secondary" icon="coffee" onPress={() => go('/care')} small />

@@ -2,6 +2,7 @@ import React, { createContext, useCallback, useContext, useEffect, useMemo, useR
 import AsyncStorage from '@react-native-async-storage/async-storage';
 import { initialState, reducer, restore, STORAGE_KEY, type Action, type State } from '@/lib/model';
 import { translate } from '@/lib/i18n';
+import { getPetState, type PetState } from '@/lib/pet';
 
 type Ctx = {
   state: State;
@@ -11,6 +12,7 @@ type Ctx = {
   storageNotice: string | null;
   dismissNotice: () => void;
   name: string;
+  pet: { state: PetState; setState: (value: PetState) => void; reset: () => void };
 };
 const MomoContext = createContext<Ctx | null>(null);
 
@@ -51,10 +53,16 @@ export function MomoProvider({ children }: { children: ReactNode }) {
     [state.language],
   );
   const dismissNotice = useCallback(() => setNotice(null), []);
+  const setPetState = useCallback((value: PetState) => dispatch({ type: 'PET_STATE', value }), []);
+  const resetPetState = useCallback(() => dispatch({ type: 'PET_STATE', value: null }), []);
+  const pet = useMemo(
+    () => ({ state: getPetState(state), setState: setPetState, reset: resetPetState }),
+    [state, setPetState, resetPetState],
+  );
 
   const value = useMemo(
-    () => ({ state, dispatch, t, hydrated, storageNotice, dismissNotice, name: state.profile.nickname }),
-    [state, t, hydrated, storageNotice, dismissNotice],
+    () => ({ state, dispatch, t, hydrated, storageNotice, dismissNotice, name: state.profile.nickname, pet }),
+    [state, t, hydrated, storageNotice, dismissNotice, pet],
   );
   return <MomoContext.Provider value={value}>{children}</MomoContext.Provider>;
 }

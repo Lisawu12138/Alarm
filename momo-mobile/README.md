@@ -24,6 +24,40 @@ pnpm start
 - 设置支持昵称、三种预设头像、默认铃声、音量、中英文、版本和关于。
 - 本地数据保存在 AsyncStorage；演示选项可重置本地数据。
 
+## Pet state and animation placeholders
+
+The shared Momo state is available anywhere inside `MomoProvider`:
+
+```tsx
+const { pet } = useMomo();
+pet.setState('sleep'); // awake | sleep | shake | happy | fed
+pet.reset(); // resume automatic state
+// Read pet.state, or render <PetAnimation state={pet.state} label="Momo" />.
+```
+
+Non-component code can dispatch `{ type: 'PET_STATE', value: 'happy' }` through
+the existing app dispatch, or use `getPetState(state)` from `lib/pet.ts`.
+Pass `null` to resume automatic state. Manual overrides are visual only:
+setting `fed` never spends food or marks a meal confirmed.
+
+Automatic state follows confirmed feeding and challenge progress. Challenge
+start, completion, stop, saved alarm settings, successful feeding and sync clear
+overrides. Offline pending food does not count as fed. Previews and held gestures
+reset on reload; existing saved records remain readable.
+
+`petAnimations` in `lib/pet.ts` defines one named animation slot per state;
+`asset: null` explicitly marks missing assets. `PetAnimationGraphic` in
+`components/Art.tsx` is the shared rendering placeholder for standalone pets and
+the room. It uses existing static SVG poses, not final animation playback.
+Connect the chosen animation renderer there when real assets are available.
+Profile avatars remain decorative and do not follow the shared pet.
+
+Open **Local demo → Pet animation placeholder** to preview each state and
+**Use automatic pet state** to return to app-driven behavior. Previewing `fed`
+changes only the pet pose, not the real food bowl or feeding record.
+
+Run `pnpm test` for state transition tests and `pnpm typecheck` for app types.
+
 ## 原型边界
 
 没有后端、真实好友账号、收费、语音克隆或 LLM 服务。音频、录音、提醒和摇动为演示，不会真正录音或播放声音，不保证锁屏/后台/系统闹钟能力。音量仅为应用内演示值，不等于系统音量。请勿把本原型当作实际起床闹钟。
