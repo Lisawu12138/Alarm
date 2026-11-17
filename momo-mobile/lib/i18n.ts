@@ -1,6 +1,9 @@
 // Copied from mockup-sandbox _demo/i18n.tsx plus native additions.
 import type { Language } from './model';
 export const english: Record<string, string> = {
+  "宠物动画占位": "Pet animation placeholder", "暂用静态插画，动画资源待接入。": "Static artwork for now. Animation assets can be connected later.",
+  "清醒": "Awake", "睡觉": "Sleeping", "摇动": "Shaking", "开心": "Happy", "吃饱": "Fed",
+  "恢复自动宠物状态": "Use automatic pet state",
   "设置": "Settings", "关于": "About", "小组": "Group", "闹钟": "Alarm", "好友语音": "Voices", "照顾": "Care",
   "返回小组": "Back to group", "小组首页": "Group home", "主要导航": "Main navigation",
   "应用内演示音量": "Demo volume", "停止本地试听演示": "Stop visual preview", "本地试听演示": "Visual preview",

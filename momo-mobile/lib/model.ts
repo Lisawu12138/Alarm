@@ -1,4 +1,5 @@
 // Ported from mockup-sandbox project-alarm/_demo/model.ts (source of truth). Local copy.
+import { petStates, type PetState } from './pet';
 export const STORAGE_KEY = 'momo-local-ritual-v1';
 export const DEMO_NOW = '07:42';
 export const tones = ['birds', 'piano', 'chimes'] as const;
@@ -16,9 +17,11 @@ export type State = {
   rewarded: boolean; status: 'waiting' | 'ready' | 'completed' | 'skipped';
   fed: boolean; contributor: '' | 'Peter'; pending: boolean; offline: boolean;
   active: boolean; progress: number; reminder: boolean;
+  petOverride: PetState | null;
   nudge: 'idle' | 'review' | 'delivered' | 'played'; recordSeconds: number;
 };
 export type Action =
+  | { type: 'PET_STATE'; value: PetState | null }
   | { type: 'PROFILE'; profile: Profile } | { type: 'LANGUAGE'; value: Language } | { type: 'TONE'; value: Tone }
   | { type: 'SAVE'; settings: Settings } | { type: 'VOLUME'; value: number }
   | { type: 'ALLOW'; value: boolean } | { type: 'START' } | { type: 'TICK'; gain: boolean }
@@ -33,6 +36,7 @@ export function initialState(): State {
     settings: { time: '08:00', days: [0, 1, 2, 3, 4], duration: 30, voice: '', volume: 80, allowed: true, tone: 'birds' },
     saved: false, points: 20, food: 0, rewarded: false, status: 'waiting', fed: false, contributor: '', pending: false,
     offline: false, active: false, progress: 0, reminder: false, nudge: 'idle', recordSeconds: 0,
+    petOverride: null,
   };
 }
 export function validProfile(p: unknown): p is Profile {
@@ -57,30 +61,31 @@ export function validSettings(s: unknown): s is Settings {
 export function reducer(s: State, a: Action): State {
   switch (a.type) {
     case 'HYDRATE': return a.state;
+    case 'PET_STATE': return a.value === null || petStates.includes(a.value) ? { ...s, petOverride: a.value } : s;
     case 'PROFILE': return validProfile(a.profile) ? { ...s, profile: { ...a.profile } } : s;
     case 'LANGUAGE': return a.value === 'zh' || a.value === 'en' ? { ...s, language: a.value } : s;
     case 'TONE': return tones.includes(a.value) ? { ...s, settings: { ...s.settings, tone: a.value } } : s;
     case 'RESET': return initialState();
     case 'SAVE': return validSettings(a.settings)
-      ? { ...s, settings: { ...a.settings, days: [...a.settings.days] }, saved: true, active: false, progress: 0, status: s.rewarded ? 'completed' : 'ready' }
+      ? { ...s, petOverride: null, settings: { ...a.settings, days: [...a.settings.days] }, saved: true, active: false, progress: 0, status: s.rewarded ? 'completed' : 'ready' }
       : s;
     case 'VOLUME': return Number.isFinite(a.value) ? { ...s, settings: { ...s.settings, volume: Math.max(0, Math.min(100, Math.round(a.value))) } } : s;
     case 'ALLOW': return { ...s, settings: { ...s.settings, allowed: a.value } };
-    case 'START': return s.saved ? { ...s, active: true, progress: 0, status: 'ready', reminder: false } : s;
+    case 'START': return s.saved ? { ...s, petOverride: null, active: true, progress: 0, status: 'ready', reminder: false } : s;
     case 'TICK': {
       if (!s.active) return s;
       const progress = Math.max(0, Math.min(s.settings.duration, s.progress + (a.gain ? 1 : -1)));
       if (progress < s.settings.duration) return { ...s, progress };
-      return { ...s, progress, active: false, status: 'completed', rewarded: true, points: s.points + (s.rewarded ? 0 : 10), reminder: false };
+      return { ...s, petOverride: null, progress, active: false, status: 'completed', rewarded: true, points: s.points + (s.rewarded ? 0 : 10), reminder: false };
     }
-    case 'STOP': return { ...s, active: false, progress: 0, status: s.rewarded ? 'completed' : 'skipped', reminder: false };
+    case 'STOP': return { ...s, petOverride: null, active: false, progress: 0, status: s.rewarded ? 'completed' : 'skipped', reminder: false };
     case 'BUY': return s.points < 10 ? s : { ...s, points: s.points - 10, food: s.food + 1 };
     case 'FEED':
       if (s.fed || s.pending || s.food < 1) return s;
-      return s.offline ? { ...s, pending: true } : { ...s, food: s.food - 1, fed: true, contributor: 'Peter' };
+      return s.offline ? { ...s, pending: true } : { ...s, petOverride: null, food: s.food - 1, fed: true, contributor: 'Peter' };
     case 'SYNC':
       if (!s.pending || s.fed || s.food < 1) return s;
-      return { ...s, offline: false, pending: false, food: s.food - 1, fed: true, contributor: 'Peter' };
+      return { ...s, petOverride: null, offline: false, pending: false, food: s.food - 1, fed: true, contributor: 'Peter' };
     case 'OFFLINE': return { ...s, offline: a.value };
     case 'REMINDER': return { ...s, reminder: a.value };
     case 'RECORD': return s.nudge === 'idle' && a.seconds > 0 ? { ...s, nudge: 'review', recordSeconds: Math.min(8, Math.floor(a.seconds)) } : s;
@@ -98,6 +103,8 @@ export function restore(raw: string): State | null {
     if (!has(v.settings, 'tone')) v.settings.tone = 'birds';
     if (!has(v, 'profile')) v.profile = initialState().profile;
     if (!has(v, 'language')) v.language = 'zh';
+    // Animation previews and in-progress gestures never survive a restart.
+    v.petOverride = null;
     const bools = ['saved', 'rewarded', 'fed', 'pending', 'offline', 'active', 'reminder'] as const;
     if (v.version !== 1 || !validSettings(v.settings) || !validProfile(v.profile) || !['zh', 'en'].includes(v.language) ||
       !bools.every(k => typeof v[k] === 'boolean') ||

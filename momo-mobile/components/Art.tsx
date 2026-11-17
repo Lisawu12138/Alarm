@@ -5,6 +5,7 @@ import Svg, { Circle, ClipPath, Defs, Ellipse, G, LinearGradient, Path, RadialGr
 import { useColors } from '@/hooks/useColors';
 import { fonts } from '@/components/UI';
 import type { AvatarKind, Profile } from '@/lib/model';
+import { petAnimations, type PetState } from '@/lib/pet';
 
 // Illustration palette (art data, kept identical to the original SVG).
 const A = {
@@ -15,7 +16,7 @@ const A = {
   petal: '#ffe4a5', petalLine: '#dfbe6f', flowerCore: '#ed9c3e', glasses: '#5f6c3b', toe: '#7f9e54',
   phone: '#577448', phoneLine: '#365734', screen: '#fff2c8', phoneBtn: '#e1e7c7', spark: '#d4ac55', zz: '#8ba36e',
 };
-export type Pose = 'awake' | 'sleep' | 'shake' | 'happy' | 'fed';
+export type Pose = PetState;
 export const avatarSkin: Record<AvatarKind, string> = { scarf: '#b7d77b', flower: '#b8ce8c', glasses: '#9cbe7e' };
 
 function PetG({ pose = 'awake', color = A.skin, accessory = 'scarf', id }: { pose?: Pose; color?: string; accessory?: string; id: string }) {
@@ -100,6 +101,20 @@ export function Pet({ pose = 'awake', color, accessory = 'scarf', size = 200, la
   );
 }
 
+function PetAnimationGraphic({ state, id }: { state: PetState; id: string }) {
+  return <PetG pose={petAnimations[state].placeholderPose} id={id} />;
+}
+
+export function PetAnimation({ state, size = 200, label }: { state: PetState; size?: number; label: string }) {
+  const id = useId().replace(/[^a-zA-Z0-9]/g, '');
+  return (
+    <View testID={`pet-animation-${state}`} accessible accessibilityRole="image" accessibilityLabel={label}
+      style={{ width: size, height: size * 260 / 280 }}>
+      <Svg width="100%" height="100%" viewBox="0 0 280 260"><PetAnimationGraphic state={state} id={id} /></Svg>
+    </View>
+  );
+}
+
 export function ProfileAvatar({ profile, size = 40 }: { profile: Profile; size?: number }) {
   const c = useColors();
   const bg = profile.avatar === 'flower' ? c.avatarPeach : profile.avatar === 'glasses' ? c.avatarSage : c.avatarSand;
@@ -140,12 +155,12 @@ function Plant({ x, y, scale = 1 }: { x: number; y: number; scale?: number }) {
 }
 const leaves = [[18, 15, -30], [17, 39, 35], [28, 61, -30], [37, 84, 40], [34, 105, -30], [280, 15, 40], [283, 36, -30], [294, 57, 40], [295, 78, -35], [291, 97, 40], [333, 20, 35], [335, 42, -30]];
 
-export function Room({ pose = 'awake', speech, bowlFull = false, label, style }: { pose?: Pose; speech?: string; bowlFull?: boolean; label: string; style?: StyleProp<ViewStyle> }) {
+export function Room({ pose = 'awake', petState = pose, speech, bowlFull = false, label, style }: { pose?: Pose; petState?: PetState; speech?: string; bowlFull?: boolean; label: string; style?: StyleProp<ViewStyle> }) {
   const c = useColors();
   const id = useId().replace(/[^a-zA-Z0-9]/g, '');
   const pid = id + 'p';
   return (
-    <View accessible accessibilityRole="image" accessibilityLabel={`${label}${speech ? ` · ${speech}` : ''}`} style={[styles.room, { backgroundColor: c.card, borderColor: c.border }, style]}>
+    <View testID={`pet-animation-${petState}`} accessible accessibilityRole="image" accessibilityLabel={`${label}${speech ? ` · ${speech}` : ''}`} style={[styles.room, { backgroundColor: c.card, borderColor: c.border }, style]}>
       <Svg width="100%" height="100%" viewBox="0 0 380 260" preserveAspectRatio="xMidYMid slice">
         <Defs>
           <LinearGradient id={`${id}sky`} x1="0" y1="0" x2="0" y2="1"><Stop offset="0" stopColor="#f8e6b3" /><Stop offset="1" stopColor="#fff3cf" /></LinearGradient>
@@ -187,7 +202,7 @@ export function Room({ pose = 'awake', speech, bowlFull = false, label, style }:
         </G>
         <Plant x={27} y={186} scale={0.85} />
         <Plant x={347} y={199} scale={0.75} />
-        <G transform="translate(65 28) scale(0.893)"><PetG pose={pose} id={pid} /></G>
+        <G transform="translate(65 28) scale(0.893)"><PetAnimationGraphic state={petState} id={pid} /></G>
         <G transform="translate(283 224)">
           <Ellipse cx="0" cy="8" rx="31" ry="8" fill="#b6b98b" opacity={0.2} />
           <Path d="M-29-3H29L23 12Q0 21-23 12Z" fill="#82a55a" stroke="#6d8c47" strokeWidth={1.5} />

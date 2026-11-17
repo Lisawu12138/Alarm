@@ -8,11 +8,11 @@ import { Btn, Card, Screen, T, Wallet, fonts } from '@/components/UI';
 
 export default function Success() {
   const c = useColors();
-  const { state, t, name } = useMomo();
+  const { state, t, name, pet } = useMomo();
   const done = state.rewarded;
   return (
     <Screen tabs={false} back title={t('今天的一小步')}>
-      <Room pose={done ? 'happy' : 'awake'} label={t('Momo 的晨光小屋')} bowlFull={state.fed}
+      <Room petState={pet.state} label={t('Momo 的晨光小屋')} bowlFull={state.fed}
         speech={done ? t('{name}，刚才有认真动一动呢！', { name }) : t('我们一起，慢慢来。')} />
       <View style={{ gap: 4 }}>
         <T variant="kicker">{t(done ? '今日挑战已完成' : '还未完成挑战')}</T>

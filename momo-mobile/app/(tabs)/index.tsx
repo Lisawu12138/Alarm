@@ -23,7 +23,7 @@ function useSettleCountdown() {
 
 export default function Home() {
   const c = useColors();
-  const { state, t, name } = useMomo();
+  const { state, t, name, pet } = useMomo();
   const countdown = useSettleCountdown();
   const status = personalStatus(state);
   const speech = state.fed ? t('{name}，谢谢你的早餐！', { name }) : state.pending ? t('早餐还在路上，慢慢来。') : t('{name}，今天也一起开始吧。', { name });
@@ -57,7 +57,7 @@ export default function Home() {
           <Text style={[s.pillText, { color: state.fed ? c.primaryDeep : c.accentText }]}>{foodLabel}</Text>
         </View>
       </View>
-      <Room pose={state.fed ? 'fed' : 'awake'} bowlFull={state.fed} speech={speech} label={t('Momo 的晨光小屋')} />
+      <Room petState={pet.state} bowlFull={state.fed} speech={speech} label={t('Momo 的晨光小屋')} />
       {state.fed && <T variant="small">{t('贡献者 {name} · 今日不会再消耗食物', { name })}</T>}
 
       <Wallet balance={state.points} stock={state.food} reserved={state.pending} />
