@@ -1,3 +1,4 @@
+import { t } from '../i18n';
 import { useState } from 'react';
 import { useApp } from '../store';
 import { ACCESSORIES, Accessory, PET_COLORS, PetSprite, PetStage, SPECIES, cssVar } from '../components/ui';
@@ -14,13 +15,13 @@ export function Adopt({ again }: { again?: boolean }) {
 
   const adopt = async () => {
     setBusy(true);
-    try { await api.adoptPet(sp, name.trim(), color, acc); await reload(); toast(`欢迎 ${name.trim()}！`); } catch (e) { toast((e as Error).message); }
+    try { await api.adoptPet(sp, name.trim(), color, acc); await reload(); toast(t(`欢迎 ${name.trim()}！`, `Welcome, ${name.trim()}!`)); } catch (e) { toast((e as Error).message); }
     setBusy(false);
   };
 
   return (
     <div className={`screen ${again ? 'with-tab' : ''}`} style={{ gap: 14 }}>
-      <div><div className="h1">{again ? '再领养一只伙伴' : '领养一只伙伴'}</div><div className="sub">全组共养这一只，大家看到的都是它</div></div>
+      <div><div className="h1">{again ? t('再领养一只伙伴', 'Adopt another buddy') : t('领养一只伙伴', 'Adopt a buddy')}</div><div className="sub">{t('全组共养这一只，大家看到的都是它', 'The whole group raises this one together')}</div></div>
       <div className="center"><PetStage species={sp} stage={1} color={color} accessory={acc} size={190} petHeight={80} /></div>
       <div className="species">
         {SPECIES.map((s) => (
@@ -29,11 +30,11 @@ export function Adopt({ again }: { again?: boolean }) {
           </button>
         ))}
       </div>
-      <div className="col" style={{ gap: 8 }}><div className="label">名字</div>
-        <label className="field"><input value={name} maxLength={12} placeholder="比如：豆豆" onChange={(e) => setName(e.target.value)} /></label></div>
-      <div className="row"><div className="label grow">颜色</div>
+      <div className="col" style={{ gap: 8 }}><div className="label">{t('名字', 'Name')}</div>
+        <label className="field"><input value={name} maxLength={12} placeholder={t('比如：豆豆', 'e.g. Bean')} onChange={(e) => setName(e.target.value)} /></label></div>
+      <div className="row"><div className="label grow">{t('颜色', 'Color')}</div>
         {PET_COLORS.map((c) => <button key={c} className={`swatch ${color === c ? 'on' : ''}`} style={{ background: cssVar(c) }} onClick={() => setColor(c)} aria-label={c} />)}</div>
-      <div className="col" style={{ gap: 8 }}><div className="label">配饰</div>
+      <div className="col" style={{ gap: 8 }}><div className="label">{t('配饰', 'Accessory')}</div>
         <div className="row" style={{ gap: 8, flexWrap: 'wrap' }}>
           {ACCESSORIES.map((a) => (
             <button key={a.id} className="pill" onClick={() => setAcc(a.id)}
@@ -43,8 +44,8 @@ export function Adopt({ again }: { again?: boolean }) {
           ))}
         </div></div>
       <div className="spacer" />
-      <button className="btn primary" disabled={!name.trim() || busy} onClick={adopt}>一起领养{name.trim() || ''}</button>
-      <div className="cap tc">小组 {n} 位成员都会看到它</div>
+      <button className="btn primary" disabled={!name.trim() || busy} onClick={adopt}>{t(`一起领养${name.trim()}`, name.trim() ? `Adopt ${name.trim()} together` : 'Adopt together')}</button>
+      <div className="cap tc">{t(`小组 ${n} 位成员都会看到它`, `All ${n} group members will see it`)}</div>
     </div>
   );
 }

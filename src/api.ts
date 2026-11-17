@@ -1,6 +1,7 @@
 import { createClient, type Session } from '@supabase/supabase-js';
 import type { AlarmDay, Board, Feeding, FinishResult, Group, GroupPreview, Pet, Profile, Voice, Species, ColorName } from './types';
 import { createDemoApi } from './demo';
+import { t } from './i18n';
 
 export interface AppData {
   profile: Profile;
@@ -44,17 +45,18 @@ export interface Api {
 function friendly(e: unknown): Error {
   const msg = (e as { message?: string })?.message || String(e);
   const map: Record<string, string> = {
-    already_in_group: '你已经在一个小组里了',
-    code_not_found: '没有找到这个邀请码',
-    already_has_pet: '小组已经有伙伴了',
-    already_fed: '今天已经有人喂过了',
-    no_food: '库存没有食物了',
-    no_group: '还没有加入小组',
-    'Invalid login credentials': '邮箱或密码不对',
-    'User already registered': '这个邮箱已经注册过，直接登录吧',
+    already_in_group: t('你已经在一个小组里了', "You're already in a group"),
+    code_not_found: t('没有找到这个邀请码', "Couldn't find that invite code"),
+    already_has_pet: t('小组已经有伙伴了', 'Your group already has a buddy'),
+    already_fed: t('今天已经有人喂过了', 'Someone already fed it today'),
+    no_food: t('库存没有食物了', 'No food left in the pantry'),
+    no_group: t('还没有加入小组', "You haven't joined a group yet"),
+    'Invalid login credentials': t('邮箱或密码不对', 'Wrong email or password'),
+    'User already registered': t('这个邮箱已经注册过，直接登录吧', 'This email is already registered — log in instead'),
+    'Email signups are disabled': t('注册暂时关闭了', 'Sign-ups are turned off right now'),
   };
   for (const k of Object.keys(map)) if (msg.includes(k)) return new Error(map[k]);
-  if (/Password should be/i.test(msg)) return new Error('密码至少 6 位');
+  if (/Password should be/i.test(msg)) return new Error(t('密码至少 6 位', 'Password needs at least 6 characters'));
   return new Error(msg);
 }
 

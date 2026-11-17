@@ -1,6 +1,15 @@
 import type { AlarmDay } from '../types';
+import { t } from '../i18n';
 
 export const WEEK_CN = ['日', '一', '二', '三', '四', '五', '六'];
+const WEEK_EN = ['Sun', 'Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat'];
+/** short day label for tiles: 一 / Mon */
+export const wkShort = (w: number) => t(WEEK_CN[w], WEEK_EN[w]);
+/** 周一 / Mon */
+export const wkName = (w: number) => t(`周${WEEK_CN[w]}`, WEEK_EN[w]);
+const MONTH_EN = ['Jan', 'Feb', 'Mar', 'Apr', 'May', 'Jun', 'Jul', 'Aug', 'Sep', 'Oct', 'Nov', 'Dec'];
+/** 11月17日 / Nov 17 */
+export const mdLabel = (m: number, d: number) => t(`${m}月${d}日`, `${MONTH_EN[m - 1]} ${d}`);
 // Display order Mon..Sun
 export const WEEK_ORDER = [1, 2, 3, 4, 5, 6, 0];
 
@@ -89,19 +98,19 @@ export function fmtClock(ts: number | string, tz?: string) {
 export function fmtUntil(ts: number, now = Date.now()) {
   const mins = Math.max(0, Math.round((ts - now) / 60000));
   const h = Math.floor(mins / 60), m = mins % 60;
-  if (h === 0) return `还有 ${m} 分钟`;
-  return `还有 ${h} 小时 ${m} 分`;
+  if (h === 0) return t(`还有 ${m} 分钟`, `in ${m} min`);
+  return t(`还有 ${h} 小时 ${m} 分`, `in ${h} h ${m} min`);
 }
 
 export function dayLabel(ts: number, tz: string, now = Date.now()) {
   const a = zonedParts(ts, tz), b = zonedParts(now, tz);
   const da = Date.UTC(a.y, a.m - 1, a.d), db = Date.UTC(b.y, b.m - 1, b.d);
   const diff = Math.round((da - db) / 86400000);
-  const wd = `周${WEEK_CN[a.wd]}`;
-  if (diff === 0) return `今天 ${wd}`;
-  if (diff === 1) return `明天 ${wd}`;
-  if (diff === 2) return `后天 ${wd}`;
-  return `${a.m}月${a.d}日 ${wd}`;
+  const wd = wkName(a.wd);
+  if (diff === 0) return t(`今天 ${wd}`, `Today · ${wd}`);
+  if (diff === 1) return t(`明天 ${wd}`, `Tomorrow · ${wd}`);
+  if (diff === 2) return t(`后天 ${wd}`, `${wd}`);
+  return t(`${mdLabel(a.m, a.d)} ${wd}`, `${wd}, ${mdLabel(a.m, a.d)}`);
 }
 
 export function localTz() {
@@ -115,7 +124,7 @@ export function tzLabel(tz: string) {
     const city = tz.split('/').pop()!.replace(/_/g, ' ');
     const cn: Record<string, string> = { New_York: '纽约', Los_Angeles: '洛杉矶', Chicago: '芝加哥', Denver: '丹佛', Shanghai: '上海', Tokyo: '东京', London: '伦敦', Paris: '巴黎', Berlin: '柏林', Hong_Kong: '香港', Taipei: '台北', Singapore: '新加坡', Seoul: '首尔', Sydney: '悉尼', Toronto: '多伦多', Vancouver: '温哥华' };
     const key = tz.split('/').pop()!;
-    return `${cn[key] || city} · ${off === 'UTC' ? 'UTC±0' : off}`;
+    return `${t(cn[key] || city, city)} · ${off === 'UTC' ? 'UTC±0' : off}`;
   } catch { return tz; }
 }
 

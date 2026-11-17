@@ -13,6 +13,7 @@ import { RecordVoice, LiveWake } from './screens/Voice';
 import { Ringing } from './screens/Ringing';
 import { Settings } from './screens/Settings';
 import { recentAlarm } from './lib/time';
+import { t, useLang } from './i18n';
 import { audio } from './lib/audio';
 import { keepAwake, requestMotionPermission } from './lib/device';
 
@@ -21,6 +22,7 @@ function loadHandled(): string[] { try { return JSON.parse(localStorage.getItem(
 function markHandled(iso: string) { try { const l = loadHandled().filter((x) => Date.now() - Date.parse(x) < 3 * 864e5); l.push(iso); localStorage.setItem(HANDLED_KEY, JSON.stringify(l)); } catch { /* */ } }
 
 export default function App() {
+  const lang = useLang();
   const [uid, setUid] = useState<string | null | undefined>(undefined);
   const [data, setData] = useState<AppData | null>(null);
   const [board, setBoard] = useState<Board | null>(null);
@@ -98,7 +100,7 @@ export default function App() {
       await requestMotionPermission();
       const ok = await keepAwake(true);
       setArmed(true);
-      toast(ok ? '待命中：保持这个页面打开、屏幕常亮，插上电' : '待命中：请把自动锁屏关掉，保持页面打开');
+      toast(ok ? t('待命中：保持这个页面打开、屏幕常亮，插上电', 'Standing by: keep this page open, screen on, phone plugged in') : t('待命中：请把自动锁屏关掉，保持页面打开', 'Standing by: turn off auto-lock and keep this page open'));
     } else { await keepAwake(false); setArmed(false); }
   }, [data?.profile.volume, toast]);
 
@@ -114,7 +116,7 @@ export default function App() {
 
   if (uid === undefined) return <div className="app"><div className="loading">…</div></div>;
   if (!uid) return <div className="app"><AuthScreen /></div>;
-  if (!ctx) return <div className="app"><div className="loading">载入中…</div></div>;
+  if (!ctx) return <div className="app"><div className="loading">{t('载入中…', 'Loading…')}</div></div>;
 
   const route = stack[stack.length - 1];
   let body: JSX.Element;
@@ -135,14 +137,14 @@ export default function App() {
 
   return (
     <AppCtx.Provider value={ctx}>
-      <div className="app">
+      <div className="app" key={lang}>
         {body}
         {ringing && (
           <Ringing at={ringing.at} test={ringing.test} liveIn={liveIn} clearLive={() => setLiveIn(null)}
             onClose={() => { if (!ringing.test) markHandled(ringing.at); setRinging(null); reloadBoard(); reload(); }} />
         )}
         {!ringing && liveIn && (
-          <div className="toast" onClick={() => setLiveIn(null)}>{ctx.member(liveIn.from_user)?.nickname || '朋友'} 给你发了一段实时叫醒</div>
+          <div className="toast" onClick={() => setLiveIn(null)}>{t(`${ctx.member(liveIn.from_user)?.nickname || '朋友'} 给你发了一段实时叫醒`, `${ctx.member(liveIn.from_user)?.nickname || 'A friend'} sent you a live wake-up`)}</div>
         )}
         {toastMsg && <div className="toast" onClick={() => setToast(null)}>{toastMsg}</div>}
       </div>

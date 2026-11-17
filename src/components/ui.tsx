@@ -1,6 +1,7 @@
 import React from 'react';
 import type { ColorName, Species } from '../types';
 import meta from '../lib/spriteMeta.json';
+import { t } from '../i18n';
 
 const PATHS: Record<string, string> = {
   mic: '<path d="M12 2a3 3 0 0 0-3 3v7a3 3 0 0 0 6 0V5a3 3 0 0 0-3-3Z"/><path d="M19 10v2a7 7 0 0 1-14 0v-2"/><path d="M12 19v3"/>',
@@ -53,11 +54,13 @@ export function Avatar({ ch, color, size = 44, ring, ringColor = 'white' }: { ch
 }
 
 export function stageOf(fedDays: number): 1 | 2 | 3 { return fedDays >= 14 ? 3 : fedDays >= 5 ? 2 : 1; }
-export const STAGE_NAME = { 1: '幼年', 2: '成长期', 3: '成年' } as const;
+export const STAGE_NAME = { get 1() { return t('幼年', 'Baby'); }, get 2() { return t('成长期', 'Juvenile'); }, get 3() { return t('成年', 'Grown-up'); } } as Record<1 | 2 | 3, string>;
 export const STAGE_AT = { 1: 0, 2: 5, 3: 14 } as const;
 export const SPECIES: { id: Species; name: string }[] = [
-  { id: 'frog', name: '青蛙' }, { id: 'cat', name: '猫' }, { id: 'dog', name: '狗' }, { id: 'otter', name: '水獭' },
-  { id: 'bear', name: '熊' }, { id: 'bunny', name: '兔' }, { id: 'bird', name: '鸟' },
+  { id: 'frog', get name() { return t('青蛙', 'Frog'); } }, { id: 'cat', get name() { return t('猫', 'Cat'); } },
+  { id: 'dog', get name() { return t('狗', 'Dog'); } }, { id: 'otter', get name() { return t('水獭', 'Otter'); } },
+  { id: 'bear', get name() { return t('熊', 'Bear'); } }, { id: 'bunny', get name() { return t('兔', 'Bunny'); } },
+  { id: 'bird', get name() { return t('鸟', 'Bird'); } },
 ];
 
 /** Sprite drawn at a shared scale: `scale` px per source px (0.75-sized webp). */
@@ -77,7 +80,10 @@ export function Accessory({ kind, size = 28 }: { kind: string; size?: number }) 
   if (kind === 'bow') return <svg width={size} height={size * 0.6} viewBox="0 0 40 24"><path d="M20 12 4 3v18zM20 12l16-9v18z" fill="var(--peach)" stroke="var(--deep)" strokeWidth="1.5" strokeLinejoin="round" /><circle cx="20" cy="12" r="4" fill="var(--orange)" stroke="var(--deep)" strokeWidth="1.5" /></svg>;
   return null;
 }
-export const ACCESSORIES = [{ id: 'none', name: '无' }, { id: 'leaf', name: '叶子帽' }, { id: 'scarf', name: '小围巾' }, { id: 'bow', name: '领结' }];
+export const ACCESSORIES = [
+  { id: 'none', get name() { return t('无', 'None'); } }, { id: 'leaf', get name() { return t('叶子帽', 'Leaf hat'); } },
+  { id: 'scarf', get name() { return t('小围巾', 'Scarf'); } }, { id: 'bow', get name() { return t('领结', 'Bow tie'); } },
+];
 export const PET_COLORS: ColorName[] = ['mint', 'sun', 'peach', 'soft', 'darkMuted'];
 export const AVATAR_COLORS: ColorName[] = ['sun', 'peach', 'mint', 'darkMuted', 'orange'];
 
@@ -102,7 +108,7 @@ export function PetStage({ species, stage, color, accessory, size = 190, petHeig
 }
 
 export function TabBar({ tab, onTab }: { tab: string; onTab: (t: 'group' | 'alarm' | 'pet') => void }) {
-  const items: ['group' | 'alarm' | 'pet', string, string][] = [['group', '小组', 'users'], ['alarm', '闹钟', 'alarm'], ['pet', '宠物', 'paw']];
+  const items: ['group' | 'alarm' | 'pet', string, string][] = [['group', t('小组', 'Group'), 'users'], ['alarm', t('闹钟', 'Alarm'), 'alarm'], ['pet', t('宠物', 'Buddy'), 'paw']];
   return (
     <nav className="tabbar">
       {items.map(([id, label, ic]) => (
@@ -155,7 +161,7 @@ export function Switch({ on, onChange }: { on: boolean; onChange: (v: boolean) =
 export function BackHeader({ title, sub, onBack, right }: { title: string; sub?: string; onBack: () => void; right?: React.ReactNode }) {
   return (
     <div className="row" style={{ gap: 10 }}>
-      <button className="icon-btn" onClick={onBack} aria-label="返回"><Icon name="chevLeft" size={18} /></button>
+      <button className="icon-btn" onClick={onBack} aria-label="back"><Icon name="chevLeft" size={18} /></button>
       <div className="grow"><div className="h2">{title}</div>{sub && <div className="cap">{sub}</div>}</div>
       {right}
     </div>

@@ -125,3 +125,6 @@ input[type=range]::-moz-range-thumb { width: 18px; height: 18px; border-radius: 
 .swatch { width: 30px; height: 30px; border-radius: 50%; border: 1px solid var(--line); }
 .swatch.on { border: 3px solid var(--green); }
 .loading { flex: 1; display: flex; align-items: center; justify-content: center; color: var(--muted); }
+.list-row > span.grow { white-space: nowrap; flex: 1 0 auto; }
+.list-row > .sub { flex: 0 1 auto; text-align: right; min-width: 0; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+.seg button { white-space: nowrap; }

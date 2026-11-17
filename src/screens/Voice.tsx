@@ -1,3 +1,4 @@
+import { t } from '../i18n';
 import { useEffect, useRef, useState } from 'react';
 import { useApp } from '../store';
 import { Avatar, BackHeader, Icon, Seg, Wave } from '../components/ui';
@@ -31,7 +32,7 @@ export function RecordVoice({ to, initialKind }: { to: string; initialKind?: 'mo
       setState('rec'); setMs(0); setClip(null);
       const t0 = Date.now();
       timer.current = window.setInterval(() => { const e = Date.now() - t0; setMs(e); if (e >= MAX_MS) stop(); }, 100);
-    } catch { toast('需要麦克风权限才能录音'); }
+    } catch { toast(t('需要麦克风权限才能录音', 'Microphone access is needed to record')); }
   };
   const stop = async () => {
     clearInterval(timer.current);
@@ -42,7 +43,7 @@ export function RecordVoice({ to, initialKind }: { to: string; initialKind?: 'mo
   const preview = async () => {
     if (!clip) return;
     if (playing) { audio.stopVoice(); setPlaying(false); return; }
-    try { setPlaying(true); const b = await audio.decode(await clip.blob.arrayBuffer()); await audio.playBuffer(b); } catch { toast('这段录音播放不了，重录一下试试'); }
+    try { setPlaying(true); const b = await audio.decode(await clip.blob.arrayBuffer()); await audio.playBuffer(b); } catch { toast(t('这段录音播放不了，重录一下试试', 'Can\'t play this clip — try recording again')); }
     setPlaying(false);
   };
   const send = async () => {
@@ -51,7 +52,7 @@ export function RecordVoice({ to, initialKind }: { to: string; initialKind?: 'mo
     try {
       await api.sendVoice(clip.blob, to, kind, kind === 'morning' && theirNext ? new Date(theirNext).toISOString() : null, clip.ms);
       await reloadVoices();
-      toast(kind === 'morning' ? `已发送，${who.nickname}明早会听到` : `已发送，${who.nickname}可以把它设为常用起床音效`);
+      toast(kind === 'morning' ? t(`已发送，${who.nickname}明早会听到`, `Sent! ${who.nickname} will hear it at the next alarm`) : t(`已发送，${who.nickname}可以把它设为常用起床音效`, `Sent! ${who.nickname} can use it as a wake-up sound`));
       back();
     } catch (e) { toast((e as Error).message); }
     setBusy(false);
@@ -61,15 +62,15 @@ export function RecordVoice({ to, initialKind }: { to: string; initialKind?: 'mo
 
   return (
     <div className="screen" style={{ paddingBottom: 28 }}>
-      <BackHeader title={`给${who.nickname}录一段`} onBack={back} />
-      <Seg value={kind} options={[['morning', '明早语音'], ['favorite', '常用音效']]} onChange={setKind} />
+      <BackHeader title={t(`给${who.nickname}录一段`, `Record for ${who.nickname}`)} onBack={back} />
+      <Seg value={kind} options={[['morning', t('明早语音', 'Morning voice')], ['favorite', t('常用音效', 'Wake-up sound')]]} onChange={setKind} />
       <div className="card row" style={{ padding: '14px 16px', gap: 12 }}>
         <Avatar ch={who.avatar_char} color={who.avatar_color} size={44} />
         <div className="grow col" style={{ gap: 2 }}>
           <span style={{ fontWeight: 700 }}>{who.nickname}</span>
           <span className="row" style={{ gap: 5, fontSize: 13, color: morningOff ? 'var(--muted)' : 'var(--green)' }}>
             <Icon name={kind === 'morning' ? 'alarm' : 'heart'} size={14} />
-            {kind === 'morning' ? (theirNext ? `${dayLabel(theirNext, who.timezone).split(' ')[0]} ${fmtClock(theirNext, who.timezone)} 响铃，只播这一次` : 'TA 接下来没有闹钟 · 未排程') : '可以反复用，TA 选它当常用起床声'}
+            {kind === 'morning' ? (theirNext ? t(`${dayLabel(theirNext, who.timezone).split(' ')[0]} ${fmtClock(theirNext, who.timezone)} 响铃，只播这一次`, `Their alarm: ${dayLabel(theirNext, who.timezone).split(' · ')[0]} ${fmtClock(theirNext, who.timezone)} · plays once`) : t('TA 接下来没有闹钟 · 未排程', 'No upcoming alarm · not scheduled')) : t('可以反复用，TA 选它当常用起床声', 'Reusable — they can pick it as their wake-up sound')}
           </span>
         </div>
       </div>
@@ -78,21 +79,21 @@ export function RecordVoice({ to, initialKind }: { to: string; initialKind?: 'mo
         <div style={{ position: 'absolute', width: 260, height: 260, borderRadius: '50%', background: 'var(--mint)', opacity: 0.6, left: -80, top: -90 }} />
         <div style={{ position: 'absolute', width: 180, height: 180, borderRadius: '50%', background: 'var(--peach)', opacity: 0.45, right: -60, bottom: -60 }} />
         <div className="serif" style={{ position: 'relative', fontSize: 64, fontStyle: 'italic', fontWeight: 300, color: 'var(--deep)', lineHeight: 1 }}>{sec(ms)}</div>
-        <div className="cap" style={{ position: 'relative' }}>{state === 'rec' ? '录音中 · 再点一下停止' : '最长 0:30'}</div>
+        <div className="cap" style={{ position: 'relative' }}>{state === 'rec' ? t('录音中 · 再点一下停止', 'Recording · tap again to stop') : t('最长 0:30', 'Up to 0:30')}</div>
         <div style={{ position: 'relative', height: 44 }}><Wave bars={26} height={40} color={state === 'rec' ? 'var(--orange)' : 'var(--green)'} level={state === 'rec' ? level : state === 'done' ? undefined : 0.05} seed={state === 'done' ? 3 : 1 + Math.floor(ms / 150)} /></div>
         <div className="row" style={{ gap: 32, position: 'relative', marginTop: 8 }}>
-          <RoundBtn icon="redo" label="重录" size={56} disabled={state !== 'done'} onClick={() => { setClip(null); setState('idle'); setMs(0); }} />
+          <RoundBtn icon="redo" label={t('重录', 'Redo')} size={56} disabled={state !== 'done'} onClick={() => { setClip(null); setState('idle'); setMs(0); }} />
           {state === 'rec' ? (
-            <RoundBtn icon="pause" label="停止" size={76} bg="var(--orange)" color="var(--deep)" onClick={stop} pulse />
+            <RoundBtn icon="pause" label={t('停止', 'Stop')} size={76} bg="var(--orange)" color="var(--deep)" onClick={stop} pulse />
           ) : state === 'done' ? (
-            <RoundBtn icon={playing ? 'pause' : 'play'} label="试听" size={76} bg="var(--deep)" color="var(--paper)" onClick={preview} />
+            <RoundBtn icon={playing ? 'pause' : 'play'} label={t('试听', 'Play')} size={76} bg="var(--deep)" color="var(--paper)" onClick={preview} />
           ) : (
-            <RoundBtn icon="mic" label="录音" size={76} bg="var(--deep)" color="var(--paper)" disabled={morningOff} onClick={start} />
+            <RoundBtn icon="mic" label={t('录音', 'Record')} size={76} bg="var(--deep)" color="var(--paper)" disabled={morningOff} onClick={start} />
           )}
           <div style={{ width: 56 }} />
         </div>
       </div>
-      <button className="btn primary" disabled={!clip || busy || morningOff} onClick={send}><Icon name="send" size={18} />发送给{who.nickname}</button>
+      <button className="btn primary" disabled={!clip || busy || morningOff} onClick={send}><Icon name="send" size={18} />{t(`发送给${who.nickname}`, `Send to ${who.nickname}`)}</button>
     </div>
   );
 }
@@ -128,24 +129,24 @@ export function LiveWake({ to }: { to: string }) {
       rec.current = new Recorder(); t0.current = Date.now();
       setPhase('rec');
       await rec.current.start(setLevel);
-    } catch { setPhase('idle'); toast('需要麦克风权限'); }
+    } catch { setPhase('idle'); toast(t('需要麦克风权限', 'Microphone access needed')); }
   };
   const up = async () => {
     if (!rec.current) return;
     const r = await rec.current.stop(); rec.current = null; setLevel(0);
-    if (r.ms < 600) { setPhase('idle'); toast('按住久一点再松开'); return; }
+    if (r.ms < 600) { setPhase('idle'); toast(t('按住久一点再松开', 'Hold a little longer before releasing')); return; }
     setPhase('sending');
     try { await api.sendVoice(r.blob, to, 'live', bm?.scheduled_at || null, r.ms); setPhase('sent'); }
     catch (err) { toast((err as Error).message); setPhase('idle'); }
   };
 
-  const status = finished ? `${who.nickname}已经起来了` : phase === 'rec' ? '正在传声… 松开结束' : phase === 'sending' ? '发送中…' : phase === 'sent' ? (who.allow_live_autoplay ? `已送到，${who.nickname}那边会直接播放` : `已送到，等${who.nickname}接听`) : `按住说话，松开就发给${who.nickname}`;
+  const status = finished ? t(`${who.nickname}已经起来了`, `${who.nickname} is already up`) : phase === 'rec' ? t('正在传声… 松开结束', 'Talking… release to send') : phase === 'sending' ? t('发送中…', 'Sending…') : phase === 'sent' ? (who.allow_live_autoplay ? t(`已送到，${who.nickname}那边会直接播放`, `Delivered — it plays right away for ${who.nickname}`) : t(`已送到，等${who.nickname}接听`, `Delivered — waiting for ${who.nickname} to answer`)) : t(`按住说话，松开就发给${who.nickname}`, `Hold to talk, release to send to ${who.nickname}`);
   const mins = bm?.scheduled_at ? minutesSince(bm.scheduled_at) : 0;
 
   return (
     <div className="screen night" style={{ alignItems: 'center', gap: 16, paddingBottom: 40 }}>
       <div className="row" style={{ width: '100%' }}>
-        <span className="row grow" style={{ gap: 6, fontSize: 13, color: 'var(--darkMuted)' }}><span style={{ width: 8, height: 8, borderRadius: 4, background: 'var(--orange)' }} />{who.nickname}已响铃 {Math.max(0, mins)} 分钟</span>
+        <span className="row grow" style={{ gap: 6, fontSize: 13, color: 'var(--darkMuted)' }}><span style={{ width: 8, height: 8, borderRadius: 4, background: 'var(--orange)' }} />{t(`${who.nickname}已响铃 ${Math.max(0, mins)} 分钟`, `${who.nickname}'s alarm has rung for ${Math.max(0, mins)} min`)}</span>
         <button className="icon-btn" onClick={back}><Icon name="x" size={16} color="var(--darkMuted)" /></button>
       </div>
       <div style={{ position: 'relative', width: 280, height: 280, marginTop: 10 }}>
@@ -162,7 +163,7 @@ export function LiveWake({ to }: { to: string }) {
         <span style={{ position: 'absolute', inset: 0, borderRadius: '50%', background: 'var(--orange)', opacity: phase === 'rec' ? 0.35 : 0.2, transform: phase === 'rec' ? 'scale(1.08)' : undefined, transition: 'transform .15s' }} />
         <span className="center" style={{ position: 'absolute', inset: 19, borderRadius: '50%', background: 'var(--orange)' }}><Icon name="mic" size={40} color="var(--deep)" /></span>
       </button>
-      <div className="cap" style={{ color: 'var(--darkMuted)' }}>{phase === 'rec' ? '松开结束' : '按住说话'}</div>
+      <div className="cap" style={{ color: 'var(--darkMuted)' }}>{phase === 'rec' ? t('松开结束', 'Release to end') : t('按住说话', 'Hold to talk')}</div>
     </div>
   );
 }
